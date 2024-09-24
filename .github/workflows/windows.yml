@@ -83,6 +83,7 @@ jobs:
           -DCOMPILE_TESTS="TRUE"
           -DDETERMINISTIC="TRUE"
           -DUSE_FBGEMM="TRUE"
+          -DUSE_INTGEMM="ON"
           -DUSE_MPI="FALSE"
           -DUSE_NCCL="FALSE"
           -DUSE_SENTENCEPIECE="TRUE"
@@ -90,9 +91,6 @@ jobs:
         cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
         cmakeListsTxtPath: ${{ github.workspace }}/CMakeLists.txt
         useVcpkgToolchainFile: true
-      # Building in Debug is sufficient for the all-in CPU+GPU compilation;
-      # its main purpose is to detect warnings that the Release build is not
-      # able to find sometimes.
       if: matrix.gpu == true
 
     # Windows CUDA builds use USE_NCCL=off due to compilation errors
@@ -113,6 +111,7 @@ jobs:
           -DCOMPILE_TESTS="TRUE"
           -DDETERMINISTIC="TRUE"
           -DUSE_FBGEMM="TRUE"
+          -DUSE_INTGEMM="ON"
           -DUSE_MPI="FALSE"
           -DUSE_NCCL="FALSE"
           -DUSE_SENTENCEPIECE="TRUE"
@@ -132,6 +131,13 @@ jobs:
       run: |
         .\marian.exe --version
         .\marian-decoder.exe --version
+        .\marian-decoder.exe --build-info all
         .\marian-scorer.exe --version
         dir *.exe
+      shell: cmd
+
+    - name: Verify INTGEMM Support
+      working-directory: build/
+      run: |
+        .\marian-decoder.exe --build-info all | findstr /C:"USE_INTGEMM=ON"
       shell: cmd
